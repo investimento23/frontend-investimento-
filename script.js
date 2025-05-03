@@ -1,47 +1,61 @@
-const backendURL = "https://bony-boiled-pigeon.glitch.me";
+const API_URL = "https://bony-boiled-pigeon.glitch.me";
 
-document.getElementById("form-investir").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
+function investir() {
   const telefone = document.getElementById("telefone").value.trim();
-  const valor = document.getElementById("valor").value.trim();
+  const valor = parseFloat(document.getElementById("valor").value.trim());
+  const mensagem = document.getElementById("mensagem");
 
-  if (!telefone || !valor || Number(valor) < 100) {
-    alert("Digite um número válido e valor mínimo de 100 MZN.");
+  if (!telefone || isNaN(valor) || valor < 100) {
+    mensagem.textContent = "Por favor, preencha todos os campos corretamente. Valor mínimo é 100 MZN.";
+    mensagem.style.color = "red";
     return;
   }
 
-  const res = await fetch(`${backendURL}/investir`, {
+  fetch(`${API_URL}/investir`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telefone, valor })
-  });
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.sucesso) {
+        mensagem.innerHTML = `Código de referência enviado por SMS. Use este código: <strong>${data.referencia}</strong>`;
+        mensagem.style.color = "green";
+        gerarBotaoPayPal(valor);
+      } else {
+        mensagem.textContent = "Erro ao processar investimento.";
+        mensagem.style.color = "red";
+      }
+    })
+    .catch(() => {
+      mensagem.textContent = "Erro de conexão com o servidor.";
+      mensagem.style.color = "red";
+    });
+}
 
-  const data = await res.json();
+function gerarBotaoPayPal(valor) {
+  const container = document.getElementById("paypal-button-container");
+  container.innerHTML = ""; // Limpa botões anteriores
 
-  if (data.sucesso) {
-    alert(`Investimento criado. Referência: ${data.referencia}`);
-    document.getElementById("paypal-button-container").style.display = "block";
-  } else {
-    alert("Erro ao criar investimento.");
-  }
+  paypal.Buttons({
+    createOrder: function (data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: (valor / 63).toFixed(2) // conversão aproximada para USD
+          }
+        }]
+      });
+    },
+    onApprove: function (data, actions) {
+      return actions.order.capture().then(function () {
+        alert("Pagamento PayPal efetuado com sucesso!");
+      });
+    }
+  }).render("#paypal-button-container");
+}
+
+// Botão Txuna
+document.querySelector(".especial").addEventListener("click", () => {
+  alert("Txuna ativado! Continue investindo para ganhar mais.");
 });
-
-// PayPal
-paypal.Buttons({
-  createOrder: function(data, actions) {
-    const valor = document.getElementById("valor").value.trim();
-    return actions.order.create({
-      purchase_units: [{
-        amount: {
-          value: (valor / 63).toFixed(2) // Conversão estimada MZN para USD
-        }
-      }]
-    });
-  },
-  onApprove: function(data, actions) {
-    return actions.order.capture().then(function(details) {
-      alert("Pagamento feito com sucesso por " + details.payer.name.given_name);
-    });
-  }
-}).render("#paypal-button-container");
