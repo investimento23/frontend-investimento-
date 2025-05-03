@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Só Jogo Moz - Investimentos</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Só Jogo Moz</h1>
+    <p>Investe com confiança e ganha todos os dias!</p>
+  </header>
+
+  <main>
+    <section id="painel">
+      <h2>Painel de Investimento</h2>
+      <input type="text" id="telefone" placeholder="Digite seu número" />
+      <input type="number" id="valor" placeholder="Valor (mínimo 100 MZN)" />
+      <button onclick="investir()">Investir Agora</button>
+      <button class="especial">Txuna</button>
+      <p id="mensagem"></p>
+    </section>
+
+    <section id="paypal">
+      <h3>Ou pague com PayPal</h3>
+      <div id="paypal-button-container"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Só Jogo Moz © 2025</p>
+  </footer>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=AYLPxV-8fsjua0voZJKXgumM9nkpqdUsZYGCqvsdQiBBAaZd0Qs0GihPfk_Oc-RfFlVNOrBUXou8dpJk&currency=USD"></script>
+  <script src="script.js"></script>
+</body>
+    </html>
