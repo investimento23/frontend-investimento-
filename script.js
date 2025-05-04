@@ -1,61 +1,59 @@
-const API_URL = "https://bony-boiled-pigeon.glitch.me";
-
+// Função para fazer o investimento
 function investir() {
-  const telefone = document.getElementById("telefone").value.trim();
-  const valor = parseFloat(document.getElementById("valor").value.trim());
-  const mensagem = document.getElementById("mensagem");
+  const telefone = document.getElementById('telefone').value;
+  const valor = document.getElementById('valor').value;
 
-  if (!telefone || isNaN(valor) || valor < 100) {
-    mensagem.textContent = "Por favor, preencha todos os campos corretamente. Valor mínimo é 100 MZN.";
-    mensagem.style.color = "red";
+  // Verifica se o valor é maior que 100
+  if (valor < 100) {
+    document.getElementById('mensagem').innerText = "Valor mínimo para investir é 100 MZN.";
     return;
   }
 
-  fetch(`${API_URL}/investir`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telefone, valor })
+  // Faz o envio de dados para o backend (substituir com seu link real)
+  fetch('https://bony-boiled-pigeon.glitch.me/investir', {  // Substitua com o link correto do backend
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ telefone, valor }),  // Envia os dados de telefone e valor
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.sucesso) {
-        mensagem.innerHTML = `Código de referência enviado por SMS. Use este código: <strong>${data.referencia}</strong>`;
-        mensagem.style.color = "green";
-        gerarBotaoPayPal(valor);
-      } else {
-        mensagem.textContent = "Erro ao processar investimento.";
-        mensagem.style.color = "red";
-      }
-    })
-    .catch(() => {
-      mensagem.textContent = "Erro de conexão com o servidor.";
-      mensagem.style.color = "red";
-    });
+  .then(response => response.json())  // Quando o backend responder
+  .then(data => {
+    // Exibe a resposta do backend, no caso a referência de investimento
+    if (data.sucesso) {
+      document.getElementById('mensagem').innerText = `Investimento realizado com sucesso. Referência: ${data.referencia}`;
+    } else {
+      document.getElementById('mensagem').innerText = 'Erro ao realizar o investimento. Tente novamente.';
+    }
+  })
+  .catch(error => {
+    document.getElementById('mensagem').innerText = 'Erro ao realizar investimento.';
+    console.error('Error:', error);  // Exibe o erro no console
+  });
 }
 
-function gerarBotaoPayPal(valor) {
-  const container = document.getElementById("paypal-button-container");
-  container.innerHTML = ""; // Limpa botões anteriores
-
+// Função para adicionar o botão do PayPal
+function initPayPal() {
   paypal.Buttons({
-    createOrder: function (data, actions) {
+    createOrder: function(data, actions) {
       return actions.order.create({
         purchase_units: [{
           amount: {
-            value: (valor / 63).toFixed(2) // conversão aproximada para USD
+            value: document.getElementById('valor').value  // Valor a ser pago com PayPal
           }
         }]
       });
     },
-    onApprove: function (data, actions) {
-      return actions.order.capture().then(function () {
-        alert("Pagamento PayPal efetuado com sucesso!");
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert('Pagamento aprovado: ' + details.payer.name.given_name);
+        // Enviar os detalhes do pagamento para o backend, se necessário
       });
     }
-  }).render("#paypal-button-container");
+  }).render('#paypal-button-container');
 }
 
-// Botão Txuna
-document.querySelector(".especial").addEventListener("click", () => {
-  alert("Txuna ativado! Continue investindo para ganhar mais.");
-});
+// Inicia o botão PayPal ao carregar a página
+window.onload = function() {
+  initPayPal();
+};
